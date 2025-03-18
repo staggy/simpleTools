@@ -133,6 +133,8 @@ def listen_keypress(use_com):
                 #     # ser.write(bytes(pingCommand))
                 #     # print(f"Sent hex data: {pingCommand}")
                 #     time.sleep(0.2)  # Short delay to avoid multiple sends on a single press
+                elif keyboard.is_pressed('esc'):
+                    raise KeyboardInterrupt
             # Sleep for a short while to avoid excessive CPU usage
             time.sleep(0.001)
     
