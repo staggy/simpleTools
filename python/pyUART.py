@@ -1,6 +1,6 @@
 """
 Created by Carl Gager
-Updated: 3/16/2025
+Updated: 3/19/2025
 
 This program allows communication with a microcontroller or serial device via a specified COM port.
 It listens for keypresses and sends predefined commands to the connected device. It also handles incoming serial data,
@@ -12,6 +12,7 @@ import time
 import keyboard
 import serial
 import serial.tools.list_ports
+
 
 # Set this to a specific Com E.g. COM13 and it will use that every run, else if will find them all and ask.
 COM = ""
@@ -79,6 +80,44 @@ def validate_available_com(reset=False):
     listen_keypress(COM)
 
 
+def parse_command(command):
+    """
+    Parses a command starting with R or W, followed by a sequence of hex digits (without 0x prefix),
+    and returns the action and corresponding bytes to send.
+
+    Args:
+        command (str): The command input from the user (e.g., 'w3243', 'r32')
+
+    Returns:
+        tuple: (action, bytes) where action is 'R' or 'W' and bytes is a list of byte values.
+    """
+    # Strip spaces and convert the input to lowercase
+    command = command.strip().lower()
+
+    # Check if the command starts with 'w' or 'r'
+    if command.startswith('w'):
+        action = 0x77  # 'w' as hex
+        data = command[1:]  # Remove the 'w' from the start
+    elif command.startswith('r'):
+        action = 0x72  # 'r' as hex
+        data = command[1:]  # Remove the 'r' from the start
+    else:
+        print("Invalid command. It should start with 'w' for write or 'r' for read.")
+        return None
+
+    # Convert the remaining part of the string into bytes
+    try:
+        byte_values = [int(data[i:i + 2], 16) for i in range(0, len(data), 2)]
+    except ValueError:
+        print(f"Error: Invalid hex data in {command}")
+        return None
+
+    # Prepend the action byte (0x77 for write, 0x72 for read)
+    byte_values.insert(0, action)
+
+    return action, byte_values
+
+
 def listen_keypress(use_com):
     """
         Listens for keypresses while managing serial communication on the specified COM port.
@@ -121,18 +160,28 @@ def listen_keypress(use_com):
                     ser.write(bytes(pingCommand))
                     print(f"Sent hex data: {pingCommand}")
                     time.sleep(0.1)  # Short delay to avoid multiple sends on a single press
-                # elif keyboard.is_pressed('3'):
+                    # Listen for terminal input to send as bytes
+                    # Listen for keypresses for predefined commands
+                elif keyboard.is_pressed('3'):
+                    user_input = input("Enter command (r34 for read, w32ff for write): ").strip()
+                    if user_input.startswith("3"):
+                        user_input = user_input[1:]
+                    parsed_command = parse_command(user_input)
+                    action, byte_values = parsed_command
+                    ser.write(bytearray(byte_values))
+                    time.sleep(0.1)  # Short delay to avoid multiple sends on a single press
+                # elif keyboard.is_pressed('r'):
                 #     # ser.write(bytes(pingCommand))
                 #     print(f"Sent hex data: {pingCommand}")
-                #     time.sleep(0.2)  # Short delay to avoid multiple sends on a single press
-                # elif keyboard.is_pressed('4'):
+                #     time.sleep(0.1)  # Short delay to avoid multiple sends on a single press
+                # elif keyboard.is_pressed('w'):
                 #     # ser.write(bytes(pingCommand))
                 #     # print(f"Sent hex data: {pingCommand}")
-                #     time.sleep(0.2)  # Short delay to avoid multiple sends on a single press
+                #     time.sleep(0.1)  # Short delay to avoid multiple sends on a single press
                 # elif keyboard.is_pressed('5'):
                 #     # ser.write(bytes(pingCommand))
                 #     # print(f"Sent hex data: {pingCommand}")
-                #     time.sleep(0.2)  # Short delay to avoid multiple sends on a single press
+                #     time.sleep(0.1)  # Short delay to avoid multiple sends on a single press
                 elif keyboard.is_pressed('esc'):
                     raise KeyboardInterrupt
             # Sleep for a short while to avoid excessive CPU usage
@@ -164,7 +213,13 @@ def main():
         validate_available_com(reset=False)
     else:
         # Default COM set skip selection and run
-        listen_keypress(COM)
+        # Check if COM starts with 'COM' or is just a number
+        if COM.startswith("COM"):
+            com_port = COM  # If it already starts with "COM", use it as is
+        else:
+            com_port = f"COM{COM}"  # If it's just a number, prepend "COM"
+        # Default COM set skip selection and run
+        listen_keypress(com_port)
 
 
 if __name__ == "__main__":
