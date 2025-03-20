@@ -1,6 +1,6 @@
 """
 Created by Carl Gager
-Updated: 3/19/2025
+Updated: 3/20/2025
 
 This program allows communication with a microcontroller or serial device via a specified COM port.
 It listens for keypresses and sends predefined commands to the connected device. It also handles incoming serial data,
@@ -164,12 +164,17 @@ def listen_keypress(use_com):
                     # Listen for keypresses for predefined commands
                 elif keyboard.is_pressed('3'):
                     user_input = input("Enter command (r34 for read, w32ff for write): ").strip()
+                    # remove added 3 just in case it starts with one
                     if user_input.startswith("3"):
                         user_input = user_input[1:]
-                    parsed_command = parse_command(user_input)
-                    action, byte_values = parsed_command
-                    ser.write(bytearray(byte_values))
-                    time.sleep(0.1)  # Short delay to avoid multiple sends on a single press
+                    
+                    try:
+                        action, byte_values = parse_command(user_input)
+                        ser.write(bytearray(byte_values))
+                        time.sleep(0.1)  # Short delay to avoid multiple sends on a single press
+                    except Exception as e:
+                        print(e)
+                        time.sleep(0.1)  # Short delay to avoid multiple sends on a single press
                 # elif keyboard.is_pressed('r'):
                 #     # ser.write(bytes(pingCommand))
                 #     print(f"Sent hex data: {pingCommand}")
