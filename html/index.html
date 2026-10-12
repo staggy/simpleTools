@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A collection of useful browser-based tools by Carl Gager.">
+  <meta name="theme-color" content="#f3f4f6" id="theme-color-meta">
+  <title>Tools · Carl Gager</title>
+  <script>
+    (() => {
+      let savedTheme;
+      try { savedTheme = localStorage.getItem('simple-tools-theme'); } catch {}
+      const theme = savedTheme === 'light' || savedTheme === 'dark'
+        ? savedTheme
+        : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --panel: #fff;
+      --text: #202124;
+      --muted: #666;
+      --line: #dedfe3;
+      --key: #f1f2f4;
+      --key-hover: #e4e6eb;
+      --accent: #0878d1;
+      --accent-text: #fff;
+      --active-bg: #e7f2fb;
+      --active-text: #075f9f;
+      --icon-bg: #eaf4fc;
+      --hover-border: #b8d8ef;
+      --shadow: 0 12px 36px #1112;
+      color-scheme: light;
+      font: 16px/1.5 "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #191919;
+      --panel: #242424;
+      --text: #f5f5f5;
+      --muted: #b7b7b7;
+      --line: #3d3d3d;
+      --key: #343434;
+      --key-hover: #444;
+      --accent: #36a9e8;
+      --accent-text: #071521;
+      --active-bg: #203747;
+      --active-text: #8bd0ff;
+      --icon-bg: #203747;
+      --hover-border: #397398;
+      --shadow: 0 12px 36px #0005;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 18px 12px;
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+    }
+
+    .brand {
+      padding: 7px 12px 18px;
+      font-size: 1.1rem;
+      font-weight: 650;
+    }
+
+    .nav-label {
+      padding: 14px 12px 5px;
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 650;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .nav-link {
+      display: flex;
+      min-height: 42px;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+    }
+
+    .nav-link:hover { background: var(--key); }
+
+    .nav-link.active {
+      background: var(--active-bg);
+      box-shadow: inset 3px 0 var(--accent);
+      color: var(--active-text);
+      font-weight: 600;
+    }
+
+    .nav-icon {
+      width: 20px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      padding: 14px 12px 4px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    .main {
+      min-width: 0;
+      padding: clamp(20px, 5vw, 48px);
+    }
+
+    .content {
+      width: min(100%, 900px);
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 1.35rem;
+    }
+
+    .theme-toggle {
+      display: inline-flex;
+      min-height: 40px;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .theme-toggle:hover { background: var(--key); }
+    .theme-toggle:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 2px; }
+
+    .intro { margin-bottom: 24px; }
+
+    .intro h2 {
+      margin: 0;
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      letter-spacing: -.035em;
+      line-height: 1.15;
+    }
+
+    .intro p {
+      max-width: 58ch;
+      margin: 10px 0 0;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: 14px;
+    }
+
+    .tool-card {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr) 20px;
+      align-items: center;
+      gap: 14px;
+      min-height: 100px;
+      padding: 18px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+
+    .tool-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--hover-border);
+      box-shadow: 0 16px 38px #1113;
+    }
+
+    .tool-card:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
+      outline-offset: 3px;
+    }
+
+    .tool-icon {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border-radius: 11px;
+      background: var(--icon-bg);
+      color: var(--accent);
+      font-size: 1.25rem;
+      font-weight: 650;
+    }
+
+    .tool-copy strong, .tool-copy small { display: block; }
+    .tool-copy strong { font-size: 1rem; }
+    .tool-copy small { margin-top: 4px; color: var(--muted); font-size: .85rem; }
+    .arrow { color: var(--muted); font-size: 1.2rem; }
+
+    @media (max-width: 700px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        padding: 10px 14px;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .brand { padding: 7px 8px; }
+      .nav-label, .sidebar-bottom { display: none; }
+      .nav-link { min-height: 40px; padding: 8px 12px; }
+      .main { padding: 24px 16px; }
+      .topbar { margin-bottom: 20px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="https://carlgager.me/">Carl Gager</a>
+      <span class="nav-label">Workspace</span>
+      <a class="nav-link active" href="./" aria-current="page">
+        <span class="nav-icon" aria-hidden="true">▦</span>
+        <span>Tools</span>
+      </a>
+      <div class="sidebar-bottom">Small tools for everyday tasks.</div>
+    </aside>
+
+    <main class="main">
+      <div class="content">
+        <header class="topbar">
+          <h1>Tools</h1>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark theme">
+            <span id="theme-icon" aria-hidden="true">☾</span>
+            <span id="theme-label">Dark mode</span>
+          </button>
+        </header>
+
+        <section class="intro" aria-labelledby="intro-title">
+          <h2 id="intro-title">What do you need to do?</h2>
+          <p>Choose a tool to get started. These lightweight utilities run right in your browser.</p>
+        </section>
+
+        <nav class="grid" aria-label="Available tools">
+          <a class="tool-card" href="calculator.html">
+            <span class="tool-icon" aria-hidden="true">＋</span>
+            <span class="tool-copy">
+              <strong>Calculator</strong>
+              <small>Everyday math and conversions</small>
+            </span>
+            <span class="arrow" aria-hidden="true">→</span>
+          </a>
+          <a class="tool-card" href="checksumCalculator.html">
+            <span class="tool-icon" aria-hidden="true">⌁</span>
+            <span class="tool-copy">
+              <strong>Checksum Calculator</strong>
+              <small>Calculate and compare file hashes</small>
+            </span>
+            <span class="arrow" aria-hidden="true">→</span>
+          </a>
+          <a class="tool-card" href="timeSince.html">
+            <span class="tool-icon" aria-hidden="true">◷</span>
+            <span class="tool-copy">
+              <strong>Time Since</strong>
+              <small>Track the time elapsed since a date</small>
+            </span>
+            <span class="arrow" aria-hidden="true">→</span>
+          </a>
+        </nav>
+      </div>
+    </main>
+  </div>
+  <script>
+    (() => {
+      const button = document.getElementById('theme-toggle');
+      const icon = document.getElementById('theme-icon');
+      const label = document.getElementById('theme-label');
+      const themeColor = document.getElementById('theme-color-meta');
+
+      function updateThemeControl() {
+        const dark = document.documentElement.dataset.theme === 'dark';
+        const nextTheme = dark ? 'light' : 'dark';
+        button.setAttribute('aria-label', `Switch to ${nextTheme} theme`);
+        button.setAttribute('aria-pressed', String(dark));
+        icon.textContent = dark ? '☀' : '☾';
+        label.textContent = dark ? 'Light mode' : 'Dark mode';
+        themeColor.content = dark ? '#191919' : '#f3f4f6';
+      }
+
+      button.addEventListener('click', () => {
+        const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = nextTheme;
+        try { localStorage.setItem('simple-tools-theme', nextTheme); } catch {}
+        updateThemeControl();
+      });
+
+      updateThemeControl();
+    })();
+  </script>
+</body>
+</html>
