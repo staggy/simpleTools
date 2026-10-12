@@ -1,0 +1,1 @@
+window.setupUnitConverter('Area',{Square_meter:1,Square_kilometer:1e6,Square_centimeter:.0001,Square_millimeter:1e-6,Hectare:1e4,Acre:4046.8564224,Square_mile:2589988.110336,Square_yard:.83612736,Square_foot:.09290304,Square_inch:.00064516});

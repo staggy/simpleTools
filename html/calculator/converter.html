@@ -1,1 +1,22 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Unit Converter · Simple Tools</title><link rel="stylesheet" href="calculator.css"><script src="calculator.js" defer></script></head><body><div id="app"></div></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Browse and search local unit converters for common measurements.">
+  <title>Unit Converter · Simple Tools</title>
+  <link rel="stylesheet" href="calculator.css">
+  <script src="converter-index.js" defer></script>
+</head>
+<body>
+  <main class="content" style="padding:clamp(18px,4vw,40px) 14px">
+    <header class="topbar"><div><a href="../calculator.html" class="muted">← Calculator</a><h1 style="margin-top:8px">Unit converter</h1></div><button id="themeToggle" class="icon-button" type="button">◐ Theme</button></header>
+    <section class="card">
+      <label class="form-field" for="converterSearch"><span>Search converters and units</span><input id="converterSearch" type="search" placeholder="Try “temperature”, “gallon”, or “mile”" autocomplete="off"></label>
+      <p class="muted" id="searchSummary" aria-live="polite"></p>
+      <div id="converterList" class="converter-grid"></div>
+      <p id="noMatches" class="muted hidden">No converters or units match that search.</p>
+    </section>
+    <p class="muted" style="font-size:.8rem;text-align:center">Conversions run in this browser. No data is uploaded.</p>
+  </main>
+</body>
+</html>

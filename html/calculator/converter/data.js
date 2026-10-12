@@ -1,0 +1,1 @@
+window.setupUnitConverter('Data',{Bit:1,Byte:8,Kilobit:1000,Kilobyte:8000,Megabit:1e6,Megabyte:8e6,Gigabit:1e9,Gigabyte:8e9,Terabit:1e12,Terabyte:8e12,Kibibit:1024,Kibibyte:8192,Mebibyte:8388608,Gibibyte:8589934592});
