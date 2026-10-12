@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculate CRC32, MD5, SHA-1, and SHA-256 checksums for text or files in your browser.">
+    <title>Checksum Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hash-value { overflow-wrap: anywhere; }
+        .drop-active { border-color: #2563eb; background-color: #eff6ff; }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-100 px-4 py-8 text-gray-900">
+    <main class="mx-auto max-w-3xl rounded-xl bg-white p-6 shadow-lg sm:p-8">
+        <header class="mb-6 text-center">
+            <h1 class="text-2xl font-bold sm:text-3xl">Checksum Calculator</h1>
+            <p class="mt-2 text-gray-600">Calculate CRC32, MD5, SHA-1, and SHA-256 for text or files.</p>
+            <p class="mt-1 text-sm text-gray-500">Everything is processed locally in your browser.</p>
+        </header>
+
+        <section aria-labelledby="input-heading">
+            <h2 id="input-heading" class="mb-3 text-lg font-semibold">Choose input</h2>
+            <div class="mb-4 flex gap-2" role="tablist" aria-label="Input type">
+                <button id="textTab" type="button" role="tab" aria-selected="false" aria-controls="textPanel" class="rounded-md bg-gray-200 px-4 py-2 font-medium text-gray-700 hover:bg-gray-300">Text</button>
+                <button id="fileTab" type="button" role="tab" aria-selected="true" aria-controls="filePanel" class="rounded-md bg-blue-600 px-4 py-2 font-medium text-white">File</button>
+            </div>
+
+            <div id="textPanel" role="tabpanel" aria-labelledby="textTab" hidden>
+                <label for="textInput" class="mb-1 block text-sm font-medium">Text to hash</label>
+                <textarea id="textInput" rows="6" placeholder="Type or paste text here..." class="w-full rounded-md border border-gray-300 p-3 font-mono text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"></textarea>
+            </div>
+
+            <div id="filePanel" role="tabpanel" aria-labelledby="fileTab">
+                <label id="dropZone" for="fileInput" class="flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 text-center hover:border-blue-500 hover:bg-blue-50">
+                    <span class="font-medium">Drop a file here or click to browse</span>
+                    <span class="mt-1 text-sm text-gray-500">Files are read locally and are not uploaded.</span>
+                    <span id="fileName" class="mt-3 text-sm font-medium text-blue-700"></span>
+                </label>
+                <input id="fileInput" type="file" class="sr-only">
+            </div>
+
+            <div class="mt-4 flex flex-wrap items-center gap-3">
+                <button id="calculateButton" type="button" class="rounded-md bg-blue-600 px-5 py-2 font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">Calculate checksums</button>
+                <button id="clearButton" type="button" class="rounded-md border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50">Clear</button>
+                <span id="status" class="text-sm text-gray-600" role="status" aria-live="polite"></span>
+            </div>
+        </section>
+
+        <section id="results" class="mt-8" aria-labelledby="results-heading" hidden>
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h2 id="results-heading" class="text-lg font-semibold">Checksums</h2>
+                <button id="copyAllButton" type="button" class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50">Copy all</button>
+            </div>
+            <dl id="hashList" class="divide-y divide-gray-200 rounded-lg border border-gray-200"></dl>
+            <div class="mt-5">
+                <label for="compareInput" class="mb-1 block text-sm font-medium">Check a checksum</label>
+                <div class="flex flex-wrap items-center gap-3">
+                    <input id="compareInput" type="text" autocomplete="off" spellcheck="false" placeholder="Paste a checksum to compare" class="min-w-0 flex-1 rounded-md border border-gray-300 p-2 font-mono text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
+                    <span id="compareResult" class="text-sm font-semibold text-gray-500" role="status" aria-live="polite">Enter a checksum to compare.</span>
+                </div>
+            </div>
+        </section>
+
+        <p class="mt-6 text-xs leading-relaxed text-gray-500">MD5 and SHA-1 are provided for compatibility and file identification; they are not recommended for security-sensitive uses.</p>
+    </main>
+
+    <script>
+        const textTab = document.getElementById('textTab');
+        const fileTab = document.getElementById('fileTab');
+        const textPanel = document.getElementById('textPanel');
+        const filePanel = document.getElementById('filePanel');
+        const textInput = document.getElementById('textInput');
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const dropZone = document.getElementById('dropZone');
+        const status = document.getElementById('status');
+        const results = document.getElementById('results');
+        const hashList = document.getElementById('hashList');
+        const compareInput = document.getElementById('compareInput');
+        const compareResult = document.getElementById('compareResult');
+        let activeMode = 'file';
+        let latestHashes = null;
+        let calculationId = 0;
+
+        function selectMode(mode) {
+            activeMode = mode;
+            const textSelected = mode === 'text';
+            textTab.setAttribute('aria-selected', String(textSelected));
+            fileTab.setAttribute('aria-selected', String(!textSelected));
+            textTab.className = textSelected
+                ? 'rounded-md bg-blue-600 px-4 py-2 font-medium text-white'
+                : 'rounded-md bg-gray-200 px-4 py-2 font-medium text-gray-700 hover:bg-gray-300';
+            fileTab.className = !textSelected
+                ? 'rounded-md bg-blue-600 px-4 py-2 font-medium text-white'
+                : 'rounded-md bg-gray-200 px-4 py-2 font-medium text-gray-700 hover:bg-gray-300';
+            textPanel.hidden = !textSelected;
+            filePanel.hidden = textSelected;
+            status.textContent = '';
+        }
+
+        textTab.addEventListener('click', () => selectMode('text'));
+        fileTab.addEventListener('click', () => selectMode('file'));
+
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            fileName.textContent = file ? `${file.name} (${formatBytes(file.size)})` : '';
+            status.textContent = '';
+        });
+
+        for (const eventName of ['dragenter', 'dragover']) {
+            dropZone.addEventListener(eventName, event => {
+                event.preventDefault();
+                dropZone.classList.add('drop-active');
+            });
+        }
+        for (const eventName of ['dragleave', 'drop']) {
+            dropZone.addEventListener(eventName, event => {
+                event.preventDefault();
+                dropZone.classList.remove('drop-active');
+            });
+        }
+        dropZone.addEventListener('drop', event => {
+            const file = event.dataTransfer.files[0];
+            if (!file) return;
+            const transfer = new DataTransfer();
+            transfer.items.add(file);
+            fileInput.files = transfer.files;
+            fileName.textContent = `${file.name} (${formatBytes(file.size)})`;
+            selectMode('file');
+        });
+
+        document.getElementById('calculateButton').addEventListener('click', calculate);
+        document.getElementById('clearButton').addEventListener('click', clearAll);
+        document.getElementById('copyAllButton').addEventListener('click', copyAll);
+        compareInput.addEventListener('input', updateComparison);
+
+        async function calculate() {
+            const thisCalculation = ++calculationId;
+            let data;
+            if (activeMode === 'text') {
+                if (!textInput.value.length) {
+                    status.textContent = 'Enter some text first.';
+                    textInput.focus();
+                    return;
+                }
+                data = new TextEncoder().encode(textInput.value);
+            } else {
+                const file = fileInput.files[0];
+                if (!file) {
+                    status.textContent = 'Choose a file first.';
+                    return;
+                }
+                status.textContent = `Reading ${file.name}...`;
+                try {
+                    data = new Uint8Array(await file.arrayBuffer());
+                } catch (error) {
+                    if (thisCalculation === calculationId) status.textContent = 'Could not read this file.';
+                    return;
+                }
+            }
+
+            status.textContent = 'Calculating...';
+            try {
+                const [md5, sha1, sha256] = await Promise.all([
+                    digestHex('MD5', data),
+                    digestHex('SHA-1', data),
+                    digestHex('SHA-256', data)
+                ]);
+                if (thisCalculation !== calculationId) return;
+                latestHashes = {
+                    CRC32: crc32(data),
+                    MD5: md5,
+                    'SHA-1': sha1,
+                    'SHA-256': sha256
+                };
+                renderHashes(latestHashes);
+                status.textContent = 'Done.';
+            } catch (error) {
+                if (thisCalculation === calculationId) {
+                    status.textContent = error.message || 'Could not calculate checksums in this browser.';
+                }
+            }
+        }
+
+        async function digestHex(algorithm, data) {
+            if (!globalThis.crypto || !crypto.subtle) {
+                throw new Error('Web Crypto is unavailable. Open this page on HTTPS or localhost, then try again.');
+            }
+            if (algorithm === 'MD5') return md5Hex(data);
+            const digest = await crypto.subtle.digest(algorithm, data);
+            return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+        }
+
+        // MD5 is intentionally included for compatibility and file identification, not security.
+        // Web Crypto does not expose MD5, so calculate it locally with the RFC 1321 algorithm.
+        function md5Hex(input) {
+            const bitLength = input.length * 8;
+            const paddedLength = Math.ceil((input.length + 9) / 64) * 64;
+            const bytes = new Uint8Array(paddedLength);
+            bytes.set(input);
+            bytes[input.length] = 0x80;
+            const view = new DataView(bytes.buffer);
+            view.setUint32(paddedLength - 8, bitLength >>> 0, true);
+            view.setUint32(paddedLength - 4, Math.floor(bitLength / 0x100000000), true);
+
+            const shifts = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21];
+            const constants = Array.from({ length: 64 }, (_, i) => Math.floor(Math.abs(Math.sin(i + 1)) * 0x100000000) >>> 0);
+            let a0 = 0x67452301, b0 = 0xefcdab89, c0 = 0x98badcfe, d0 = 0x10325476;
+            const rotateLeft = (value, amount) => (value << amount) | (value >>> (32 - amount));
+
+            for (let offset = 0; offset < paddedLength; offset += 64) {
+                const words = new Uint32Array(16);
+                for (let i = 0; i < 16; i++) words[i] = view.getUint32(offset + i * 4, true);
+                let a = a0, b = b0, c = c0, d = d0;
+                for (let i = 0; i < 64; i++) {
+                    let f, g, shift;
+                    if (i < 16) {
+                        f = (b & c) | (~b & d); g = i; shift = shifts[i % 4];
+                    } else if (i < 32) {
+                        f = (d & b) | (~d & c); g = (5 * i + 1) % 16; shift = shifts[4 + (i % 4)];
+                    } else if (i < 48) {
+                        f = b ^ c ^ d; g = (3 * i + 5) % 16; shift = shifts[8 + (i % 4)];
+                    } else {
+                        f = c ^ (b | ~d); g = (7 * i) % 16; shift = shifts[12 + (i % 4)];
+                    }
+                    const next = (a + f + constants[i] + words[g]) >>> 0;
+                    a = d;
+                    d = c;
+                    c = b;
+                    b = (b + rotateLeft(next, shift)) >>> 0;
+                }
+                a0 = (a0 + a) >>> 0;
+                b0 = (b0 + b) >>> 0;
+                c0 = (c0 + c) >>> 0;
+                d0 = (d0 + d) >>> 0;
+            }
+
+            return [a0, b0, c0, d0].map(word =>
+                [0, 8, 16, 24].map(shift => ((word >>> shift) & 0xff).toString(16).padStart(2, '0')).join('')
+            ).join('');
+        }
+
+        function crc32(data) {
+            let crc = 0xffffffff;
+            for (const byte of data) {
+                crc ^= byte;
+                for (let bit = 0; bit < 8; bit++) {
+                    crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+                }
+            }
+            return ((crc ^ 0xffffffff) >>> 0).toString(16).padStart(8, '0');
+        }
+
+        function renderHashes(hashes) {
+            hashList.replaceChildren();
+            for (const [algorithm, value] of Object.entries(hashes)) {
+                const row = document.createElement('div');
+                row.className = 'grid gap-2 p-3 sm:grid-cols-[7rem_1fr_auto] sm:items-center';
+                const label = document.createElement('dt');
+                label.className = 'font-semibold';
+                label.textContent = algorithm;
+                const code = document.createElement('dd');
+                code.className = 'hash-value font-mono text-sm text-gray-700';
+                code.textContent = value;
+                const copy = document.createElement('button');
+                copy.type = 'button';
+                copy.className = 'justify-self-start rounded border border-gray-300 px-2 py-1 text-xs font-medium hover:bg-gray-50 sm:justify-self-end';
+                copy.textContent = 'Copy';
+                copy.setAttribute('aria-label', `Copy ${algorithm} checksum`);
+                copy.addEventListener('click', () => copyText(value, copy));
+                row.append(label, code, copy);
+                hashList.append(row);
+            }
+            results.hidden = false;
+            updateComparison();
+        }
+
+        function updateComparison() {
+            const entered = compareInput.value.trim().toLowerCase();
+            compareResult.className = 'text-sm font-semibold';
+            if (!entered) {
+                compareResult.textContent = 'Enter a checksum to compare.';
+                compareResult.classList.add('text-gray-500');
+                return;
+            }
+            if (!latestHashes) {
+                compareResult.textContent = 'Calculate checksums first.';
+                compareResult.classList.add('text-gray-500');
+                return;
+            }
+            const match = Object.entries(latestHashes).find(([, value]) => value.toLowerCase() === entered);
+            if (match) {
+                compareResult.textContent = `✓ Match: ${match[0]}`;
+                compareResult.classList.add('text-green-700');
+            } else {
+                compareResult.textContent = '✗ No match';
+                compareResult.classList.add('text-red-700');
+            }
+        }
+
+        async function copyText(value, button) {
+            try {
+                await navigator.clipboard.writeText(value);
+                const original = button.textContent;
+                button.textContent = 'Copied';
+                setTimeout(() => { button.textContent = original; }, 1200);
+            } catch (error) {
+                status.textContent = 'Clipboard access is unavailable. Select and copy the checksum manually.';
+            }
+        }
+
+        async function copyAll() {
+            if (!latestHashes) return;
+            const formatted = Object.entries(latestHashes).map(([name, value]) => `${name}: ${value}`).join('\n');
+            await copyText(formatted, document.getElementById('copyAllButton'));
+        }
+
+        function clearAll() {
+            calculationId++;
+            textInput.value = '';
+            fileInput.value = '';
+            fileName.textContent = '';
+            latestHashes = null;
+            hashList.replaceChildren();
+            results.hidden = true;
+            compareInput.value = '';
+            updateComparison();
+            status.textContent = '';
+        }
+
+        function formatBytes(bytes) {
+            if (bytes < 1024) return `${bytes} B`;
+            const units = ['KB', 'MB', 'GB', 'TB'];
+            let size = bytes;
+            let unit = -1;
+            do { size /= 1024; unit++; } while (size >= 1024 && unit < units.length - 1);
+            return `${size.toFixed(size < 10 ? 1 : 0)} ${units[unit]}`;
+        }
+    </script>
+</body>
+</html>
