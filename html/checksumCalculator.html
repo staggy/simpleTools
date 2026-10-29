@@ -1,69 +1,80 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Calculate CRC32, MD5, SHA-1, and SHA-256 checksums for text or files in your browser.">
-    <title>Checksum Calculator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .hash-value { overflow-wrap: anywhere; }
-        .drop-active { border-color: #2563eb; background-color: #eff6ff; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Calculate CRC32, MD5, SHA-1, and SHA-256 checksums for text or files in your browser.">
+  <title>Checksum Calculator · Simple Tools</title>
+  <link rel="stylesheet" href="calculator/calculator.css">
+  <link rel="stylesheet" href="tools.css">
+  <script src="tools.js"></script>
 </head>
-<body class="min-h-screen bg-gray-100 px-4 py-8 text-gray-900">
-    <main class="mx-auto max-w-3xl rounded-xl bg-white p-6 shadow-lg sm:p-8">
-        <header class="mb-6 text-center">
-            <h1 class="text-2xl font-bold sm:text-3xl">Checksum Calculator</h1>
-            <p class="mt-2 text-gray-600">Calculate CRC32, MD5, SHA-1, and SHA-256 for text or files.</p>
-            <p class="mt-1 text-sm text-gray-500">Everything is processed locally in your browser.</p>
+<body>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+      <a class="brand" href="index.html">▦ Simple Tools</a>
+      <div class="nav-label">Workspace</div>
+      <a class="nav-link" href="index.html"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a>
+      <div class="nav-label">Tools</div>
+      <a class="nav-link" href="calculator.html"><span class="nav-icon" aria-hidden="true">＋</span>Calculator</a>
+      <a class="nav-link active" href="checksumCalculator.html" aria-current="page"><span class="nav-icon" aria-hidden="true">⌁</span>Checksum Calculator</a>
+      <a class="nav-link" href="timeSince.html"><span class="nav-icon" aria-hidden="true">◷</span>Time Since</a>
+      <div class="sidebar-bottom">
+        <button class="nav-action" id="themeToggle" type="button"><span class="nav-icon" aria-hidden="true">◐</span><span>Use <span id="themeName">dark</span> theme</span></button>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="content">
+        <header class="topbar">
+          <div class="topbar-title">
+            <button class="icon-button menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+            <h1>Checksum Calculator</h1>
+          </div>
         </header>
-
-        <section aria-labelledby="input-heading">
-            <h2 id="input-heading" class="mb-3 text-lg font-semibold">Choose input</h2>
-            <div class="mb-4 flex gap-2" role="tablist" aria-label="Input type">
-                <button id="textTab" type="button" role="tab" aria-selected="false" aria-controls="textPanel" class="rounded-md bg-gray-200 px-4 py-2 font-medium text-gray-700 hover:bg-gray-300">Text</button>
-                <button id="fileTab" type="button" role="tab" aria-selected="true" aria-controls="filePanel" class="rounded-md bg-blue-600 px-4 py-2 font-medium text-white">File</button>
+        <p class="tool-intro">Calculate CRC32, MD5, SHA-1, and SHA-256 for text or files.</p>
+        <section class="card" aria-labelledby="input-heading">
+          <h2 id="input-heading">Choose input</h2>
+          <div class="input-tabs" role="tablist" aria-label="Input type">
+            <button id="textTab" type="button" role="tab" aria-selected="false" aria-controls="textPanel" tabindex="-1" class="small-button input-tab">Text</button>
+            <button id="fileTab" type="button" role="tab" aria-selected="true" aria-controls="filePanel" class="small-button input-tab">File</button>
+          </div>
+          <div id="textPanel" role="tabpanel" aria-labelledby="textTab" hidden>
+            <div class="form-field">
+              <label for="textInput">Text to hash</label>
+              <textarea id="textInput" rows="6" placeholder="Type or paste text here..." class="field text-input"></textarea>
             </div>
-
-            <div id="textPanel" role="tabpanel" aria-labelledby="textTab" hidden>
-                <label for="textInput" class="mb-1 block text-sm font-medium">Text to hash</label>
-                <textarea id="textInput" rows="6" placeholder="Type or paste text here..." class="w-full rounded-md border border-gray-300 p-3 font-mono text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"></textarea>
-            </div>
-
-            <div id="filePanel" role="tabpanel" aria-labelledby="fileTab">
-                <label id="dropZone" for="fileInput" class="flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 text-center hover:border-blue-500 hover:bg-blue-50">
-                    <span class="font-medium">Drop a file here or click to browse</span>
-                    <span class="mt-1 text-sm text-gray-500">Files are read locally and are not uploaded.</span>
-                    <span id="fileName" class="mt-3 text-sm font-medium text-blue-700"></span>
-                </label>
-                <input id="fileInput" type="file" class="sr-only">
-            </div>
-
-            <div class="mt-4 flex flex-wrap items-center gap-3">
-                <button id="calculateButton" type="button" class="rounded-md bg-blue-600 px-5 py-2 font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">Calculate checksums</button>
-                <button id="clearButton" type="button" class="rounded-md border border-gray-300 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50">Clear</button>
-                <span id="status" class="text-sm text-gray-600" role="status" aria-live="polite"></span>
-            </div>
+          </div>
+          <div id="filePanel" role="tabpanel" aria-labelledby="fileTab">
+            <label id="dropZone" for="fileInput" class="drop-zone">
+              <strong>Drop a file here or click to browse</strong>
+              <small>Files are read locally and are not uploaded.</small>
+              <span id="fileName" class="file-name"></span>
+            </label>
+            <input id="fileInput" type="file" class="sr-only">
+          </div>
+          <div class="action-row">
+            <button id="calculateButton" type="button" class="primary-button">Calculate checksums</button>
+            <button id="clearButton" type="button" class="small-button">Clear</button>
+            <span id="status" class="status" role="status" aria-live="polite"></span>
+          </div>
         </section>
-
-        <section id="results" class="mt-8" aria-labelledby="results-heading" hidden>
-            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <h2 id="results-heading" class="text-lg font-semibold">Checksums</h2>
-                <button id="copyAllButton" type="button" class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50">Copy all</button>
-            </div>
-            <dl id="hashList" class="divide-y divide-gray-200 rounded-lg border border-gray-200"></dl>
-            <div class="mt-5">
-                <label for="compareInput" class="mb-1 block text-sm font-medium">Check a checksum</label>
-                <div class="flex flex-wrap items-center gap-3">
-                    <input id="compareInput" type="text" autocomplete="off" spellcheck="false" placeholder="Paste a checksum to compare" class="min-w-0 flex-1 rounded-md border border-gray-300 p-2 font-mono text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
-                    <span id="compareResult" class="text-sm font-semibold text-gray-500" role="status" aria-live="polite">Enter a checksum to compare.</span>
-                </div>
-            </div>
+        <section id="results" class="card" aria-labelledby="results-heading" hidden>
+          <div class="results-heading">
+            <h2 id="results-heading">Checksums</h2>
+            <button id="copyAllButton" type="button" class="small-button">Copy all</button>
+          </div>
+          <dl id="hashList" class="hash-list"></dl>
+          <div class="form-field">
+            <label for="compareInput">Check a checksum</label>
+            <input id="compareInput" type="text" autocomplete="off" spellcheck="false" placeholder="Paste a checksum to compare">
+          </div>
+          <p id="compareResult" class="compare-result muted" role="status" aria-live="polite">Enter a checksum to compare.</p>
         </section>
-
-        <p class="mt-6 text-xs leading-relaxed text-gray-500">MD5 and SHA-1 are provided for compatibility and file identification; they are not recommended for security-sensitive uses.</p>
+        <p class="tool-note">Everything is processed locally in your browser.</p>
+        <p class="tool-note">MD5 and SHA-1 are provided for compatibility and file identification; they are not recommended for security-sensitive uses.</p>
+      </div>
     </main>
+  </div>
 
     <script>
         const textTab = document.getElementById('textTab');
@@ -88,12 +99,8 @@
             const textSelected = mode === 'text';
             textTab.setAttribute('aria-selected', String(textSelected));
             fileTab.setAttribute('aria-selected', String(!textSelected));
-            textTab.className = textSelected
-                ? 'rounded-md bg-blue-600 px-4 py-2 font-medium text-white'
-                : 'rounded-md bg-gray-200 px-4 py-2 font-medium text-gray-700 hover:bg-gray-300';
-            fileTab.className = !textSelected
-                ? 'rounded-md bg-blue-600 px-4 py-2 font-medium text-white'
-                : 'rounded-md bg-gray-200 px-4 py-2 font-medium text-gray-700 hover:bg-gray-300';
+            textTab.tabIndex = textSelected ? 0 : -1;
+            fileTab.tabIndex = textSelected ? -1 : 0;
             textPanel.hidden = !textSelected;
             filePanel.hidden = textSelected;
             status.textContent = '';
@@ -101,6 +108,15 @@
 
         textTab.addEventListener('click', () => selectMode('text'));
         fileTab.addEventListener('click', () => selectMode('file'));
+        for (const tab of [textTab, fileTab]) {
+            tab.addEventListener('keydown', event => {
+                if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+                event.preventDefault();
+                const mode = event.key === 'Home' ? 'text' : event.key === 'End' ? 'file' : activeMode === 'text' ? 'file' : 'text';
+                selectMode(mode);
+                (mode === 'text' ? textTab : fileTab).focus();
+            });
+        }
 
         fileInput.addEventListener('change', () => {
             const file = fileInput.files[0];
@@ -256,16 +272,16 @@
             hashList.replaceChildren();
             for (const [algorithm, value] of Object.entries(hashes)) {
                 const row = document.createElement('div');
-                row.className = 'grid gap-2 p-3 sm:grid-cols-[7rem_1fr_auto] sm:items-center';
+                row.className = 'hash-row';
                 const label = document.createElement('dt');
-                label.className = 'font-semibold';
+                label.className = 'hash-label';
                 label.textContent = algorithm;
                 const code = document.createElement('dd');
-                code.className = 'hash-value font-mono text-sm text-gray-700';
+                code.className = 'hash-value';
                 code.textContent = value;
                 const copy = document.createElement('button');
                 copy.type = 'button';
-                copy.className = 'justify-self-start rounded border border-gray-300 px-2 py-1 text-xs font-medium hover:bg-gray-50 sm:justify-self-end';
+                copy.className = 'small-button copy-button';
                 copy.textContent = 'Copy';
                 copy.setAttribute('aria-label', `Copy ${algorithm} checksum`);
                 copy.addEventListener('click', () => copyText(value, copy));
@@ -278,24 +294,24 @@
 
         function updateComparison() {
             const entered = compareInput.value.trim().toLowerCase();
-            compareResult.className = 'text-sm font-semibold';
+            compareResult.className = 'compare-result';
             if (!entered) {
                 compareResult.textContent = 'Enter a checksum to compare.';
-                compareResult.classList.add('text-gray-500');
+                compareResult.classList.add('muted');
                 return;
             }
             if (!latestHashes) {
                 compareResult.textContent = 'Calculate checksums first.';
-                compareResult.classList.add('text-gray-500');
+                compareResult.classList.add('muted');
                 return;
             }
             const match = Object.entries(latestHashes).find(([, value]) => value.toLowerCase() === entered);
             if (match) {
                 compareResult.textContent = `✓ Match: ${match[0]}`;
-                compareResult.classList.add('text-green-700');
+                compareResult.classList.add('match');
             } else {
                 compareResult.textContent = '✗ No match';
-                compareResult.classList.add('text-red-700');
+                compareResult.classList.add('no-match');
             }
         }
 

@@ -1,89 +1,115 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Time Since Calculator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Track the time elapsed since a saved date and time in your browser.">
+  <title>Time Since · Simple Tools</title>
+  <link rel="stylesheet" href="calculator/calculator.css">
+  <link rel="stylesheet" href="tools.css">
+  <script src="tools.js"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
-        <h2 class="text-xl font-bold mb-4">Enter a Date</h2>
-        <input type="datetime-local" id="dateInput" class="w-full p-2 border rounded mb-4">
-        <button onclick="saveDate()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save Date</button>
-        <p id="result" class="mt-4 text-gray-700 font-mono"></p>
-    </div>
-    
-    <script>
-        function setCookie(name, value, days) {
-            let expires = "";
-            if (days) {
-                let date = new Date();
-                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                expires = "; expires=" + date.toUTCString();
-            }
-            document.cookie = name + "=" + value + expires + "; path=/";
-        }
+<body>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+      <a class="brand" href="index.html">▦ Simple Tools</a>
+      <div class="nav-label">Workspace</div>
+      <a class="nav-link" href="index.html"><span class="nav-icon" aria-hidden="true">⌂</span>Home</a>
+      <div class="nav-label">Tools</div>
+      <a class="nav-link" href="calculator.html"><span class="nav-icon" aria-hidden="true">＋</span>Calculator</a>
+      <a class="nav-link" href="checksumCalculator.html"><span class="nav-icon" aria-hidden="true">⌁</span>Checksum Calculator</a>
+      <a class="nav-link active" href="timeSince.html" aria-current="page"><span class="nav-icon" aria-hidden="true">◷</span>Time Since</a>
+      <div class="sidebar-bottom">
+        <button class="nav-action" id="themeToggle" type="button"><span class="nav-icon" aria-hidden="true">◐</span><span>Use <span id="themeName">dark</span> theme</span></button>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="content">
+        <header class="topbar">
+          <div class="topbar-title">
+            <button class="icon-button menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+            <h1>Time Since</h1>
+          </div>
+        </header>
+        <p class="tool-intro">Track the time elapsed since a date and time.</p>
+        <section class="card" aria-labelledby="date-heading">
+          <h2 id="date-heading">Enter a date</h2>
+          <form id="dateForm">
+            <div class="form-field">
+              <label for="dateInput">Start date and time</label>
+              <input class="field" type="datetime-local" id="dateInput" required>
+            </div>
+            <div class="action-row"><button class="primary-button" type="submit">Save Date</button></div>
+          </form>
+        </section>
+        <section class="card" id="result" aria-labelledby="elapsed-heading" hidden>
+          <h2 class="elapsed-heading" id="elapsed-heading">Time since <span id="savedDateLabel"></span></h2>
+          <div class="elapsed-totals">
+            <div class="elapsed-metric"><output id="totalDays" for="dateInput" aria-live="off">0</output><span>Total Days</span></div>
+            <div class="elapsed-metric"><output id="totalWeeks" for="dateInput" aria-live="off">0</output><span>Total Weeks</span></div>
+          </div>
+          <div class="elapsed-breakdown">
+            <div class="elapsed-metric"><output id="years" for="dateInput" aria-live="off">0</output><span>Years</span></div>
+            <div class="elapsed-metric"><output id="months" for="dateInput" aria-live="off">0</output><span>Months</span></div>
+            <div class="elapsed-metric"><output id="days" for="dateInput" aria-live="off">0</output><span>Days</span></div>
+            <div class="elapsed-metric"><output id="hours" for="dateInput" aria-live="off">0</output><span>Hours</span></div>
+            <div class="elapsed-metric"><output id="minutes" for="dateInput" aria-live="off">0</output><span>Minutes</span></div>
+            <div class="elapsed-metric"><output id="seconds" for="dateInput" aria-live="off">0</output><span>Seconds</span></div>
+          </div>
+        </section>
+        <p class="tool-note">Your saved date stays in this browser.</p>
+      </div>
+    </main>
+  </div>
+  <script>
+    function setCookie(name, value, days) {
+      const expires = new Date(Date.now() + days * 86400000).toUTCString();
+      document.cookie = name + '=' + value + '; expires=' + expires + '; path=/';
+    }
 
-        function getCookie(name) {
-            let nameEQ = name + "=";
-            let ca = document.cookie.split(';');
-            for (let i = 0; i < ca.length; i++) {
-                let c = ca[i].trim();
-                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-            }
-            return null;
-        }
+    function getCookie(name) {
+      const prefix = name + '=';
+      const cookie = document.cookie.split(';').map(value => value.trim()).find(value => value.startsWith(prefix));
+      return cookie ? cookie.substring(prefix.length) : null;
+    }
 
-        function updateTimeSince() {
-            let savedDate = getCookie("savedDate");
-            if (!savedDate) return;
-            
-            let savedTime = new Date(savedDate);
-            let now = new Date();
-            let diff = now - savedTime;
+    function updateTimeSince() {
+      const savedDate = getCookie('savedDate');
+      if (!savedDate) return;
+      const savedTime = new Date(savedDate);
+      const diff = Date.now() - savedTime;
+      if (!Number.isFinite(diff)) return;
 
-            let seconds = Math.floor(diff / 1000) % 60;
-            let minutes = Math.floor(diff / (1000 * 60)) % 60;
-            let hours = Math.floor(diff / (1000 * 60 * 60)) % 24;
-            let days = Math.floor(diff / (1000 * 60 * 60 * 24)) % 30;
-            let months = Math.floor(diff / (1000 * 60 * 60 * 24 * 30.4375)) % 12;
-            let years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
-			let totalWeeks = Math.floor(diff / (1000 * 60 * 60 * 24 * 7));
-			let totalDays = Math.floor(diff / (1000 * 60 * 60 * 24));
-            
-            document.getElementById("result").innerHTML = `
-                <strong>Time since ${savedTime.toLocaleString()}:</strong>
-				<br> <span class="text-lg font-bold">${totalDays}</span> Total Days
-				<br> <span class="text-lg font-bold">${totalWeeks}</span> Total Weeks
-				
-				<br>
-                <br> <span class="text-lg font-bold">${years}</span> Years
-                <br> <span class="text-lg font-bold">${months}</span> Months
-                <br> <span class="text-lg font-bold">${days}</span> Days
-                <br> <span class="text-lg font-bold">${hours}</span> Hours
-                <br> <span class="text-lg font-bold">${minutes}</span> Minutes
-                <br> <span class="text-lg font-bold">${seconds}</span> Seconds
-            `;
-        }
+      const values = {
+        totalDays: Math.floor(diff / 86400000),
+        totalWeeks: Math.floor(diff / (86400000 * 7)),
+        years: Math.floor(diff / (86400000 * 365.25)),
+        months: Math.floor(diff / (86400000 * 30.4375)) % 12,
+        days: Math.floor(diff / 86400000) % 30,
+        hours: Math.floor(diff / 3600000) % 24,
+        minutes: Math.floor(diff / 60000) % 60,
+        seconds: Math.floor(diff / 1000) % 60
+      };
+      document.getElementById('savedDateLabel').textContent = savedTime.toLocaleString();
+      for (const [id, value] of Object.entries(values)) document.getElementById(id).textContent = value;
+      document.getElementById('result').hidden = false;
+    }
 
-        function saveDate() {
-            let inputDate = document.getElementById("dateInput").value;
-            if (!inputDate) {
-                alert("Please enter a valid date.");
-                return;
-            }
-            setCookie("savedDate", inputDate, 365);
-            updateTimeSince();
-        }
+    function saveDate() {
+      const input = document.getElementById('dateInput');
+      if (!input.reportValidity()) return;
+      setCookie('savedDate', input.value, 365);
+      updateTimeSince();
+    }
 
-        window.onload = function() {
-            let savedDate = getCookie("savedDate");
-            if (savedDate) {
-                document.getElementById("dateInput").value = savedDate;
-            }
-            setInterval(updateTimeSince, 1000);
-        };
-    </script>
+    document.getElementById('dateForm').addEventListener('submit', event => {
+      event.preventDefault();
+      saveDate();
+    });
+    const savedDate = getCookie('savedDate');
+    if (savedDate) document.getElementById('dateInput').value = savedDate;
+    updateTimeSince();
+    setInterval(updateTimeSince, 1000);
+  </script>
 </body>
 </html>
