@@ -1,4 +1,5 @@
 (() => {
+  window.setupConverterLayout();
   const converters = [
     ['Volume','volume','liter milliliter gallon quart pint cup fluid ounce cubic meter cubic foot'],
     ['Length','length','meter kilometer centimeter millimeter micrometer nanometer mile yard foot inch nautical mile'],
@@ -13,10 +14,6 @@
     ['Pressure','pressure','pascal kilopascal bar atmosphere psi torr millimeter mercury mmhg'],
     ['Angle','angle','degree radian gradian arcminute arcsecond turn']
   ];
-  const root = document.documentElement;
-  root.dataset.theme = localStorage.getItem('simpletools-calculator-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  const toggle = document.getElementById('themeToggle');
-  toggle.onclick = () => { root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark'; localStorage.setItem('simpletools-calculator-theme', root.dataset.theme); };
   const list = document.getElementById('converterList');
   const search = document.getElementById('converterSearch');
   function render() {

@@ -4,3 +4,19 @@
 @media(max-width:760px){.shell{grid-template-columns:1fr}.sidebar{display:none;position:fixed;z-index:5;inset:0 auto 0 0;width:min(290px,86vw);box-shadow:var(--shadow);overflow:auto}.sidebar.open{display:flex}.menu-toggle{display:inline-block}.main{padding:18px 12px}.key{min-height:52px}.graph-canvas{height:300px}}
 @media(max-width:430px){.keypad{gap:5px}.key{min-height:48px;font-size:.96rem}.form-grid{grid-template-columns:1fr}.history-row{align-items:flex-start}.topbar h1{font-size:1.2rem}}
 .converter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:10px}.converter-tile{min-width:0;display:grid;grid-template-columns:38px minmax(0,1fr) 18px;align-items:center;gap:12px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}.converter-tile:hover{background:var(--key)}.converter-tile-icon{width:36px;height:36px;border-radius:9px;background:var(--key);display:grid;place-items:center;color:var(--accent);font-size:1.15rem}.converter-tile strong,.converter-tile small{display:block}.converter-tile small{margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);font-size:.76rem}.content>header.topbar{margin-bottom:22px}
+.metric-reference{min-width:0}
+.metric-reference>p{font-size:.88rem;margin:0 0 16px}
+.metric-table-scroll{max-width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.metric-table-scroll:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.metric-table{width:100%;min-width:580px;border-collapse:collapse;font-size:.88rem}
+.metric-table caption{text-align:left;color:var(--muted);padding:12px;background:var(--panel);font-size:.82rem}
+.metric-table th,.metric-table td{padding:8px 12px;border-top:1px solid var(--line);text-align:left}
+.metric-table thead{background:var(--key)}
+.metric-table thead th{font-weight:650;vertical-align:bottom}
+.metric-table tbody th{font-weight:600;white-space:nowrap}
+.metric-table tbody tr:nth-child(odd){background:color-mix(in srgb,var(--key) 65%,var(--panel))}
+.metric-table .metric-symbol{text-align:center;font-weight:600}
+.metric-table .metric-number{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.metric-table tbody tr.metric-base{background:color-mix(in srgb,var(--accent) 13%,var(--panel));border-block:2px solid var(--accent)}
+.metric-reference>.metric-source{font-size:.8rem;margin:12px 0 0}
+.metric-source a{text-decoration:underline;text-underline-offset:2px}
