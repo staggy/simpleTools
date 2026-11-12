@@ -6,6 +6,7 @@
   <meta name="description" content="A collection of useful browser-based tools by Carl Gager.">
   <meta name="theme-color" content="#f3f4f6" id="theme-color-meta">
   <title>Tools · Carl Gager</title>
+  <script src="tools.js"></script>
   <script>
     (() => {
       let savedTheme;
@@ -188,6 +189,11 @@
       gap: 14px;
     }
 
+    .tool-search { margin: 0 0 20px; }
+    .tool-search label { display: block; margin-bottom: 6px; font-size: .9rem; }
+    .tool-search input { width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); color: var(--text); padding: 10px 14px; font: inherit; }
+    .tool-search small { display: block; color: var(--muted); margin-top: 7px; }
+
     .tool-card {
       display: grid;
       grid-template-columns: 44px minmax(0, 1fr) 20px;
@@ -279,7 +285,8 @@
           <p>Choose a tool to get started. These lightweight utilities run right in your browser.</p>
         </section>
 
-        <nav class="grid" aria-label="Available tools">
+        <div class="tool-search"><label for="toolSearch">Find a tool</label><input id="toolSearch" type="search" placeholder="Search tools…" autocomplete="off"><small id="toolSummary" role="status" aria-live="polite"></small></div>
+        <nav class="grid" id="toolGrid" aria-label="Available tools">
           <a class="tool-card" href="calculator.html">
             <span class="tool-icon" aria-hidden="true">＋</span>
             <span class="tool-copy">
@@ -336,7 +343,7 @@
       button.addEventListener('click', () => {
         const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
         document.documentElement.dataset.theme = nextTheme;
-        try { localStorage.setItem('simple-tools-theme', nextTheme); } catch {}
+        try { localStorage.setItem('simple-tools-theme', nextTheme); localStorage.setItem('simpletools-calculator-theme', nextTheme); } catch {}
         updateThemeControl();
       });
 

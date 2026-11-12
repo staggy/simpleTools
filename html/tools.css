@@ -1,4 +1,6 @@
 /* Tool-specific controls built on the Calculator's shared theme and layout. */
+.sidebar { max-height: 100vh; position: sticky; top: 0; overflow-y: auto; }
+@media (max-width: 760px) { .sidebar { position: fixed; } }
 textarea { font: inherit; color: inherit; }
 button:hover { background-color: var(--key-hover); }
 :is(a, button, input, textarea):focus-visible {

@@ -1,0 +1,18 @@
+{
+  "name": "simpletools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static browser utilities; no build step or server-side file processing",
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "test:browser": "node tests/browser-check.cjs",
+    "test:browser:data": "node tests/data-tools.browser.cjs",
+    "test:browser:images": "node tests/image-converter.browser.cjs",
+    "test:browser:metadata": "node tests/metadata.browser.cjs",
+    "serve": "python -m http.server 8765 --bind 127.0.0.1 --directory html"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  },
+  "engines": { "node": ">=20" }
+}
